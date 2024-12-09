@@ -34,7 +34,7 @@ export default function CourseDetailPage({
           `https://localhost:44338/api/teacher/GetTeacherCourseSections?teacherId=10&courseInSOSId=${params.courseId}`
         );
         if (response.ok) {
-          const data: Section[] = await response.json(); // Ensure the API response matches the Section[] type
+          const data: Section[] = await response.json(); 
           setSections(data);
         } else {
           console.error("Failed to fetch sections");
@@ -48,7 +48,7 @@ export default function CourseDetailPage({
   }, [params.courseId]);
 
   const handleSectionClick = (sectionTitle: string) => {
-    router.push(`/dashboard/${params.courseId}/section/${sectionTitle}`);
+    router.push(`/dashboard/${params.courseId}/${sectionTitle}`);
   };
 
   return (
