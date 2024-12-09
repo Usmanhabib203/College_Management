@@ -1,25 +1,55 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { Header } from "../../components/header"
-import { Sidebar } from "../../components/sidebar"
-import { CourseSection } from "../../components/course-section"
-import { Folder, Settings, ListTodo } from 'lucide-react'
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Header } from "../../components/header";
+import { Sidebar } from "../../components/sidebar";
+import { CourseSection } from "../../components/course-section";
+import { Folder, Settings, ListTodo } from "lucide-react";
 
-export default function CourseDetailPage({ params }: { params: { courseId: string } }) {
-  const router = useRouter()
+// Define the type for a section
+interface Section {
+  SectionTitle: string;
+  CourseInSOSId: number;
+  CourseId: number;
+  CourseCode: string;
+}
 
-  const handleSectionClick = (section: string) => {
-    // When CLOs is clicked, navigate to Course Topics view
-    if (section === 'clos') {
-      router.push(`/dashboard/${params.courseId}/clos`)
-    }
-    if (section === 'topics') {
-      router.push(`/dashboard/${params.courseId}/topics`)
-    } else {
-      router.push(`/dashboard/${params.courseId}/${section}`)
-    }
-  }
+export default function CourseDetailPage({
+  params,
+}: {
+  params: { courseId: string };
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const courseTitle = searchParams.get("title") || "Course Details";
+
+  const [sections, setSections] = useState<Section[]>([]); // Use the Section[] type
+
+  // Fetch sections data from the API
+  useEffect(() => {
+    const fetchSections = async () => {
+      try {
+        const response = await fetch(
+          `https://localhost:44338/api/teacher/GetTeacherCourseSections?teacherId=10&courseInSOSId=${params.courseId}`
+        );
+        if (response.ok) {
+          const data: Section[] = await response.json(); // Ensure the API response matches the Section[] type
+          setSections(data);
+        } else {
+          console.error("Failed to fetch sections");
+        }
+      } catch (error) {
+        console.error("Error fetching sections:", error);
+      }
+    };
+
+    fetchSections();
+  }, [params.courseId]);
+
+  const handleSectionClick = (sectionTitle: string) => {
+    router.push(`/dashboard/${params.courseId}/section/${sectionTitle}`);
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -27,149 +57,54 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
       <div className="flex-1">
         <Header />
         <main className="p-6">
+          {/* Course Title */}
           <div className="mb-6">
             <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold">Digital Logic Design</h2>
+              <h2 className="text-2xl font-bold">{courseTitle}</h2>
             </div>
           </div>
 
           {/* Course Sections */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div onClick={() => handleSectionClick('main-folder')}>
-              <CourseSection 
+            {/* Predefined Sections */}
+            <div onClick={() => handleSectionClick("main-folder")}>
+              <CourseSection
                 icon={<Folder className="w-6 h-6 text-yellow-500" />}
                 title="Main Folder"
-                courseId={params.courseId}
                 view="main-folder"
+                courseId={params.courseId}
               />
             </div>
-            <div onClick={() => handleSectionClick('clos')}>
-              <CourseSection 
+            <div onClick={() => handleSectionClick("clos")}>
+              <CourseSection
                 icon={<Settings className="w-6 h-6 text-purple-500" />}
                 title="CLOs"
-                courseId={params.courseId}
                 view="clos"
+                courseId={params.courseId}
               />
             </div>
-            <div onClick={() => handleSectionClick('topics')}>
-              <CourseSection 
+            <div onClick={() => handleSectionClick("topics")}>
+              <CourseSection
                 icon={<ListTodo className="w-6 h-6 text-emerald-500" />}
                 title="Course Topics"
-                courseId={params.courseId}
                 view="topics"
+                courseId={params.courseId}
+              />
+            </div>
+
+            {/* Dynamic Sections */}
+            <div onClick={() => handleSectionClick("section")}>
+              <CourseSection
+                icon={<ListTodo className="w-6 h-6 text-emerald-500" />}
+                title="Sections"
+                view="section"          
+                courseId={params.courseId}
+
               />
             </div>
           </div>
         </main>
       </div>
     </div>
-  )
+  );
 }
-
-
-// 'use client'
-
-// import { useEffect, useState } from 'react'
-// import { useRouter } from 'next/navigation'
-// import { Header } from "../../components/header"
-// import { Sidebar } from "../../components/sidebar"
-// import { CourseSection } from "../../components/course-section"
-// import { Folder, Settings, ListTodo } from 'lucide-react'
-
-// // Type for course section data (adjust as needed based on the API response)
-// interface CourseSectionData {
-//   title: string
-//   icon: JSX.Element
-//   view: string
-// }
-
-// export default function CourseDetailPage({ params }: { params: { courseId: string } }) {
-//   const router = useRouter()
-//   const [courseSections, setCourseSections] = useState<CourseSectionData[]>([])
-//   const [loading, setLoading] = useState(true)
-//   const [error, setError] = useState<string | null>(null)
-
-//   useEffect(() => {
-//     const fetchCourseSections = async () => {
-//       try {
-//         const response = await fetch(
-//           `https://localhost:44338/api/teacher/GetTeacherCourseSections?teacherId=2&courseInSOSId=${params.courseId}`
-//         )
-
-//         if (!response.ok) {
-//           throw new Error('Failed to fetch course sections')
-//         }
-
-//         const data = await response.json()
-
-//         // If sections data is empty, provide static data or handle accordingly
-//         if (data.length === 0) {
-//           setCourseSections([
-//             { title: "Main Folder", icon: <Folder className="w-6 h-6 text-yellow-500" />, view: 'main-folder' },
-//             { title: "CLOs", icon: <Settings className="w-6 h-6 text-purple-500" />, view: 'clos' },
-//             { title: "Course Topics", icon: <ListTodo className="w-6 h-6 text-emerald-500" />, view: 'topics' }
-//           ])
-//         } else {
-//           setCourseSections(data)
-//         }
-//       } catch (err) {
-//         setError(err.message || 'Something went wrong')
-//         // Fallback to static data in case of error
-//         setCourseSections([
-//           { title: "Main Folder", icon: <Folder className="w-6 h-6 text-yellow-500" />, view: 'main-folder' },
-//           { title: "CLOs", icon: <Settings className="w-6 h-6 text-purple-500" />, view: 'clos' },
-//           { title: "Course Topics", icon: <ListTodo className="w-6 h-6 text-emerald-500" />, view: 'topics' }
-//         ])
-//       } finally {
-//         setLoading(false)
-//       }
-//     }
-
-//     fetchCourseSections()
-//   }, [params.courseId])
-
-//   const handleSectionClick = (section: string) => {
-//     if (section === 'clos') {
-//       router.push(`/dashboard/${params.courseId}/topics`)
-//     } else {
-//       router.push(`/dashboard/${params.courseId}/${section}`)
-//     }
-//   }
-
-//   return (
-//     <div className="flex min-h-screen bg-gray-100">
-//       <Sidebar />
-//       <div className="flex-1">
-//         <Header />
-//         <main className="p-6">
-//           <div className="mb-6">
-//             <div className="flex items-center gap-2">
-//               <h2 className="text-2xl font-bold">Digital Logic Design</h2>
-//             </div>
-//           </div>
-
-//           {/* Loading or error message */}
-//           {loading ? (
-//             <p>Loading sections...</p>
-//           ) : error ? (
-//             <p className="text-red-500">{error}</p>
-//           ) : (
-//             // Course Sections Grid
-//             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-//               {courseSections.map((section, index) => (
-//                 <div key={index} onClick={() => handleSectionClick(section.view)}>
-//                   <CourseSection
-//                     icon={section.icon}
-//                     title={section.title}
-//                     courseId={params.courseId}
-//                     view={section.view}
-//                   />
-//                 </div>
-//               ))}
-//             </div>
-//           )}
-//         </main>
-//       </div>
-//     </div>
-//   )
-// }

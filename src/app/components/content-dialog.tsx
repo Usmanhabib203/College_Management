@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from "react"
 import { Button } from "../components/ui/button"
 import {
   Dialog,
@@ -15,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table"
-import { FileIcon } from 'lucide-react'
+import { FileIcon } from "lucide-react"
 
 interface ContentDialogProps {
   open: boolean
@@ -23,10 +24,37 @@ interface ContentDialogProps {
 }
 
 export function ContentDialog({ open, onOpenChange }: ContentDialogProps) {
-  const contents = [
-    { id: 0, name: "Course Content", hasDocument: true },
-    { id: 1, name: "week 2 notes", hasDocument: true },
-  ]
+  const [contents, setContents] = useState<{ id: number; name: string; filePath: string }[]>([])
+
+  // Fetch the data from API
+  useEffect(() => {
+    async function fetchContents() {
+      try {
+        const response = await fetch(
+          "https://localhost:44338/api/teacher/GetLectureFiles?courseId=30&checkListId=7"
+        )
+        if (!response.ok) {
+          throw new Error("Failed to fetch data")
+        }
+        const data = await response.json()
+
+        // Format the data to match the required structure
+        const formattedContents = data.map((item: any, index: number) => ({
+          id: index, // You can replace this with an actual ID if provided
+          name: item.DisplayName,
+          filePath: item.FilePath,
+        }))
+
+        setContents(formattedContents)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    if (open) {
+      fetchContents()
+    }
+  }, [open]) // Trigger the fetch when the dialog opens
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,8 +76,10 @@ export function ContentDialog({ open, onOpenChange }: ContentDialogProps) {
                 <TableCell>{content.id}</TableCell>
                 <TableCell>{content.name}</TableCell>
                 <TableCell>
-                  {content.hasDocument && (
-                    <FileIcon className="h-4 w-4 text-blue-500" />
+                  {content.filePath && (
+                    <a href={`https://localhost:44338/api/teacher/download?filePath=${content.filePath}`} target="_blank" rel="noopener noreferrer">
+                      <FileIcon className="h-4 w-4 text-blue-500" />
+                    </a>
                   )}
                 </TableCell>
               </TableRow>
@@ -61,4 +91,3 @@ export function ContentDialog({ open, onOpenChange }: ContentDialogProps) {
     </Dialog>
   )
 }
-

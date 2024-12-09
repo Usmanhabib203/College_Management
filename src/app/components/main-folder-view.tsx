@@ -1,3 +1,9 @@
+
+
+
+"use client"
+
+import { useState, useEffect } from 'react'
 import { Eye } from 'lucide-react'
 import {
   Table,
@@ -9,13 +15,34 @@ import {
 } from "../components/ui/table"
 import { Button } from "../components/ui/button"
 
-const folderContents = [
-  { id: 0, name: "Course Contents" },
-  { id: 1, name: "Weekly Plan" },
-  { id: 2, name: "Lecture Notes" },
-]
+interface FolderContent {
+  Id: number;
+  Name: string;
+  Flag: number;
+  FolderContent: any[]; // You can ignore this field for now since you don't need to display it
+}
 
 export function MainFolderView() {
+  const [folderContents, setFolderContents] = useState<FolderContent[]>([])
+
+  // Fetch the data from API
+  useEffect(() => {
+    async function fetchFolderContents() {
+      try {
+        const response = await fetch('https://localhost:44338/api/teacher/GetFolderMainCheckList')
+        if (!response.ok) {
+          throw new Error('Failed to fetch data')
+        }
+        const data = await response.json()
+        setFolderContents(data) // Save the response in state
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    fetchFolderContents()
+  }, []) // Empty dependency array to run the effect once when the component mounts
+
   return (
     <div className="p-6">
       <div className="flex items-center gap-2 mb-6">
@@ -33,9 +60,9 @@ export function MainFolderView() {
           </TableHeader>
           <TableBody>
             {folderContents.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.id}</TableCell>
-                <TableCell>{item.name}</TableCell>
+              <TableRow key={item.Id}>
+                <TableCell>{item.Id}</TableCell>
+                <TableCell>{item.Name}</TableCell>
                 <TableCell>
                   <Button 
                     size="sm" 
@@ -52,4 +79,3 @@ export function MainFolderView() {
     </div>
   )
 }
-

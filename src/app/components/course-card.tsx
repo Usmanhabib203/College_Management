@@ -11,7 +11,7 @@ interface CourseCardProps {
 
 export function CourseCard({ code, title, semester, program }: CourseCardProps) {
   return (
-    <Link href={`/dashboard/${code.toLowerCase()}`}>
+    <Link href={`/dashboard/${code ? code.toLowerCase() : ''}`}>
       <Card className="hover:shadow-lg transition-shadow">
         <CardHeader className="p-4">
           <div className="flex justify-between items-start">

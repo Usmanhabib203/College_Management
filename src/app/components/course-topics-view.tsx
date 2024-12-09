@@ -1,37 +1,57 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Card, CardContent } from "../components/ui/card"
-import { Checkbox } from "../components/ui/checkbox"
-import { Check, X } from 'lucide-react'
-import { cn } from "../lib/utils"
+import { useState, useEffect } from 'react';
+import { Card, CardContent } from '../components/ui/card';
+import { cn } from '../lib/utils';
+
+// Adjusted interface to match API response structure
+interface SubTopic {
+  SubTopicId: number;
+  SubTopicName: string;
+  WeekNo: number;
+}
 
 interface Topic {
-  name: string
-  isDone: boolean
+  TopicId: number;
+  TopicName: string;
+  SubTopics: SubTopic[];
 }
 
 export function CourseTopicsView() {
-  const [topics, setTopics] = useState<Topic[]>([
-    { name: "Topic Name", isDone: false },
-    { name: "Why this Course?", isDone: true },
-    { name: "Comparison between systems", isDone: false },
-    { name: "Number System Conversions", isDone: false },
-    { name: "Integer based conversion", isDone: false },
-    { name: "Floating numbers conversions", isDone: false },
-    { name: "Any base to any other base conversion", isDone: false },
-    { name: "Arithmetic Operators", isDone: false },
-    { name: "Binary Codes", isDone: false },
-    { name: "Grey codes", isDone: false },
-    { name: "BCD codes", isDone: false },
-  ]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch topics from API
+    const fetchTopics = async () => {
+      try {
+        const response = await fetch(
+          'https://localhost:44338/api/teacher/GetTopicsByCourseCode?CourseCode=CSC-111'
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch course topics.');
+        }
+
+        const data = await response.json();
+        setTopics(data);
+      } catch (error: any) {
+        setError(error.message || 'An unknown error occurred.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTopics();
+  }, []);
 
   return (
     <div className="p-6">
       <div className="flex items-center gap-2 mb-6">
         <h2 className="text-xl font-semibold">Course Topics</h2>
       </div>
-      
+
       <Card className="shadow-sm">
         <CardContent className="p-0">
           <div className="grid grid-cols-1">
@@ -39,24 +59,39 @@ export function CourseTopicsView() {
             <div className="grid grid-cols-[1fr] p-4 border-b bg-white">
               <span className="font-medium">Topic Name</span>
             </div>
-            
-            {/* Topics */}
-            {topics.map((topic, index) => (
-              <div
-                key={index}
-                className={cn(
-                  "p-4 border-b last:border-b-0",
-                  index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                )}
-              >
-                <span>{topic.name}</span>
-              </div>
-            ))}
+
+            {/* Content */}
+            {isLoading ? (
+              <div className="p-4 text-center">Loading...</div>
+            ) : error ? (
+              <div className="p-4 text-center text-red-500">{error}</div>
+            ) : (
+              topics.map((topic, index) => (
+                <div
+                  key={topic.TopicId}
+                  className={cn(
+                    'p-4 border-b last:border-b-0',
+                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                  )}
+                >
+                  <div>
+                    <span className="font-medium">{topic.TopicName}</span>
+                    {topic.SubTopics.length > 0 && (
+                      <ul className="mt-2 pl-4 list-disc">
+                        {topic.SubTopics.map((subTopic) => (
+                          <li key={subTopic.SubTopicId}>
+                            {subTopic.SubTopicName} (Week {subTopic.WeekNo})
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
     </div>
   );
 }
-
-

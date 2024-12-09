@@ -47,14 +47,10 @@ export function Header() {
               </li>
               <li className="p-2 hover:bg-gray-100 cursor-pointer">
                 <Link href="/dashboard">
-                  Ali Bin Tahir
-                </Link>
-              </li>
-              <li className="p-2 hover:bg-gray-100 cursor-pointer">
-                <Link href="/otherDashboard">
                   Teacher Dashboard
                 </Link>
               </li>
+              
             </ul>
           </div>
         )}

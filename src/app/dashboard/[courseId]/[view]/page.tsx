@@ -3,6 +3,7 @@ import { Sidebar } from "../../../components/sidebar"
 import { MainFolderView } from "../../../components/main-folder-view"
 import { CLOsView } from "../../../components/clos-view"
 import { CourseTopicsView } from "../../../components/course-topics-view"
+import  Section  from "../../../components/sections"
 
 export default function CourseDetailPage({ 
   params 
@@ -17,6 +18,8 @@ export default function CourseDetailPage({
         return <CLOsView />
       case 'topics':
         return <CourseTopicsView />
+      case 'section':
+          return <Section />
       default:
         return <MainFolderView />
     }
